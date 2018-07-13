@@ -156,6 +156,7 @@ namespace realsense2_camera
         std::map<stream_index_pair, std::vector<rs2::stream_profile>> _enabled_profiles;
 
         ros::Publisher _pointcloud_publisher;
+        ros::Publisher _pointcloud_xyz_publisher;
         ros::Time _ros_time_base;
         bool _align_depth;
         bool _sync_frames;
