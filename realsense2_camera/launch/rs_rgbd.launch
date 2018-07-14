@@ -174,7 +174,6 @@ Processing enabled by this node:
         <remap from="rgb/camera_info"             to="$(arg rgb)/camera_info" />
         <remap from="depth_registered/image_rect" to="$(arg depth_registered_filtered)/sw_registered/image_rect_raw" />
         <remap from="depth_registered/points"     to="$(arg depth_registered)/points" />
-        <remap from="depth_registered/points_xyz" to="$(arg depth_registered)/points_xyz" />
       </node>
     </group>
 
@@ -186,7 +185,6 @@ Processing enabled by this node:
         <remap from="rgb/camera_info"             to="$(arg rgb)/camera_info" />
         <remap from="depth_registered/image_rect" to="$(arg depth_registered)/image_raw" />
         <remap from="depth_registered/points"     to="$(arg depth_registered_pub)/points" />
-        <remap from="depth_registered/points_xyz" to="$(arg depth_registered_pub)/points_xyz" />
       </node>
     </group>
 
