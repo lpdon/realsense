@@ -322,7 +322,7 @@ void BaseRealSenseNode::setupPublishers()
             if (stream == DEPTH && _pointcloud)
             {
                 _pointcloud_publisher = _node_handle.advertise<sensor_msgs::PointCloud2>("depth/color/points", 1);
-                _pointcloud_xyz_publisher = _node_handle.advertise<sensor_msgs::PointCloud2>("depth/color/points_xyz", 1);
+                _pointcloud_depth_publisher = _node_handle.advertise<sensor_msgs::PointCloud2>("depth/points", 1);
             }
         }
     }
@@ -619,10 +619,10 @@ void BaseRealSenseNode::setupStreams()
                         publishRgbToDepthPCTopic(t, is_frame_arrived);
                     }                   
 
-                    if(0 != _pointcloud_xyz_publisher.getNumSubscribers())
+                    if(0 != _pointcloud_depth_publisher.getNumSubscribers())
                     {
-                        ROS_DEBUG("publishPCXyzTopic(...)");
-                        publishXyzPCTopic(t, is_frame_arrived);
+                        ROS_DEBUG("publishPCDepthTopic(...)");
+                        publishDepthPCTopic(t, is_frame_arrived);
                     }
                 }
             }
@@ -1141,32 +1141,32 @@ void BaseRealSenseNode::publishRgbToDepthPCTopic(const ros::Time& t, const std::
     _pointcloud_publisher.publish(msg_pointcloud);
 }
 
-void BaseRealSenseNode::publishXyzPCTopic(const ros::Time& t, const std::map<stream_index_pair, bool>& is_frame_arrived)
+void BaseRealSenseNode::publishDepthPCTopic(const ros::Time& t, const std::map<stream_index_pair, bool>& is_frame_arrived)
 {
     try
     {
         if (!is_frame_arrived.at(DEPTH))
         {
-            ROS_DEBUG("Skipping publish PC_xyz topic! Depth frame didn't arrive.");
+            ROS_DEBUG("Skipping publish depth PC topic! Depth frame didn't arrive.");
             return;
         }
     }
     catch (std::out_of_range)
     {
-        ROS_DEBUG("Skipping publish PC_xyz topic! Depth frame didn't configure.");
+        ROS_DEBUG("Skipping publish depth PC topic! Depth frame didn't configure.");
         return;
     }
 
     auto image_depth16 = reinterpret_cast<const uint16_t*>(_image[DEPTH].data);
     auto depth_intrinsics = _stream_intrinsics[DEPTH];
-    sensor_msgs::PointCloud2 msg_pointcloud_xyz;
-    msg_pointcloud_xyz.header.stamp = t;
-    msg_pointcloud_xyz.header.frame_id = _optical_frame_id[DEPTH];
-    msg_pointcloud_xyz.width = depth_intrinsics.width;
-    msg_pointcloud_xyz.height = depth_intrinsics.height;
-    msg_pointcloud_xyz.is_dense = true;
+    sensor_msgs::PointCloud2 msg_pointcloud_depth;
+    msg_pointcloud_depth.header.stamp = t;
+    msg_pointcloud_depth.header.frame_id = _optical_frame_id[DEPTH];
+    msg_pointcloud_depth.width = depth_intrinsics.width;
+    msg_pointcloud_depth.height = depth_intrinsics.height;
+    msg_pointcloud_depth.is_dense = true;
 
-    sensor_msgs::PointCloud2Modifier modifier(msg_pointcloud_xyz);
+    sensor_msgs::PointCloud2Modifier modifier(msg_pointcloud_depth);
 
     modifier.setPointCloud2Fields(3,
                                   "x", 1, sensor_msgs::PointField::FLOAT32,
@@ -1175,9 +1175,9 @@ void BaseRealSenseNode::publishXyzPCTopic(const ros::Time& t, const std::map<str
 
     modifier.setPointCloud2FieldsByString(1, "xyz");
 
-    sensor_msgs::PointCloud2Iterator<float>iter_x(msg_pointcloud_xyz, "x");
-    sensor_msgs::PointCloud2Iterator<float>iter_y(msg_pointcloud_xyz, "y");
-    sensor_msgs::PointCloud2Iterator<float>iter_z(msg_pointcloud_xyz, "z");
+    sensor_msgs::PointCloud2Iterator<float>iter_x(msg_pointcloud_depth, "x");
+    sensor_msgs::PointCloud2Iterator<float>iter_y(msg_pointcloud_depth, "y");
+    sensor_msgs::PointCloud2Iterator<float>iter_z(msg_pointcloud_depth, "z");
 
     float depth_point[3], scaled_depth;
 
@@ -1206,7 +1206,7 @@ void BaseRealSenseNode::publishXyzPCTopic(const ros::Time& t, const std::map<str
         }
     }
 
-    _pointcloud_xyz_publisher.publish(msg_pointcloud_xyz);
+    _pointcloud_depth_publisher.publish(msg_pointcloud_depth);
 }
 
 Extrinsics BaseRealSenseNode::rsExtrinsicsToMsg(const rs2_extrinsics& extrinsics, const std::string& frame_id) const
